@@ -23,20 +23,22 @@ func MetaCommand(filename string) error {
 	return nil
 }
 
-func RowGroupsCommand(filename string) error {
+func RowGroupsCommand(filename string, perPage int) error {
 	reader, err := file.OpenParquetFile(filename, true)
 	if err != nil {
 		return fmt.Errorf("error opening parquet file: %w", err)
 	}
 	defer reader.Close()
 
+	var rowGroupOutput []string
 	for i := range reader.MetaData().RowGroups {
 		rowGroup := reader.RowGroup(i)
 		rowGroupStats, err := parse.GetRowGroupStats(i, rowGroup)
 		if err != nil {
 			return err
 		}
-		visualize.PrintRowGroup(rowGroupStats)
+		rowGroupOutput = append(rowGroupOutput, visualize.FormatRowGroup(rowGroupStats))
+
 	}
-	return nil
+	return visualize.PaginatorCreator(rowGroupOutput, perPage)
 }

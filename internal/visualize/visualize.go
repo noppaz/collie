@@ -3,6 +3,7 @@ package visualize
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/charmbracelet/lipgloss"
 	"github.com/charmbracelet/lipgloss/table"
@@ -67,7 +68,7 @@ func PrintFileStatistics(fileStats *parse.FileStats) {
 	fmt.Println(t)
 }
 
-func PrintRowGroup(rowGroupStats *parse.RowGroupStats) {
+func FormatRowGroup(rowGroupStats *parse.RowGroupStats) string {
 	var rows [][]string
 	headers := rowGroupStats.ChunkStats[0].GetHeaders()
 	for _, col := range rowGroupStats.ChunkStats {
@@ -75,13 +76,16 @@ func PrintRowGroup(rowGroupStats *parse.RowGroupStats) {
 	}
 	t := lipglossTable(headers, rows)
 
-	fmt.Printf(
-		"Row group: %v, Rows: %v, Compressed size: %s, Uncompressed size: %s, Compression ratio %.2f\n",
-		rowGroupStats.Index,
-		rowGroupStats.RowCount,
-		rowGroupStats.SizeCompressed,
-		rowGroupStats.SizeUncompressed,
-		rowGroupStats.CompressionRatio,
-	)
-	fmt.Println(t)
+	b := strings.Builder{}
+	b.WriteString(
+		fmt.Sprintf(
+			"Row group: %v, Rows: %v, Compressed size: %s, Uncompressed size: %s, Compression ratio %.2f\n",
+			rowGroupStats.Index,
+			rowGroupStats.RowCount,
+			rowGroupStats.SizeCompressed,
+			rowGroupStats.SizeUncompressed,
+			rowGroupStats.CompressionRatio,
+		))
+	b.WriteString(fmt.Sprintf("%s\n", t.String()))
+	return b.String()
 }

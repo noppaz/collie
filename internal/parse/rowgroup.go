@@ -29,7 +29,7 @@ func (c *ChunkStats) GetHeaders() []string {
 		"Compression",
 		"Compressed",
 		"Uncompressed",
-		"Compression ratio",
+		"Ratio",
 		"Encodings",
 		"Nulls",
 		"Min",
