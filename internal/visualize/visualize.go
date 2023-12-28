@@ -66,3 +66,22 @@ func PrintFileStatistics(fileStats *parse.FileStats) {
 	)
 	fmt.Println(t)
 }
+
+func PrintRowGroup(rowGroupStats *parse.RowGroupStats) {
+	var rows [][]string
+	headers := rowGroupStats.ChunkStats[0].GetHeaders()
+	for _, col := range rowGroupStats.ChunkStats {
+		rows = append(rows, col.GetStringedRow())
+	}
+	t := lipglossTable(headers, rows)
+
+	fmt.Printf(
+		"Row group: %v, Rows: %v, Compressed size: %s, Uncompressed size: %s, Compression ratio %.2f\n",
+		rowGroupStats.Index,
+		rowGroupStats.RowCount,
+		rowGroupStats.SizeCompressed,
+		rowGroupStats.SizeUncompressed,
+		rowGroupStats.CompressionRatio,
+	)
+	fmt.Println(t)
+}

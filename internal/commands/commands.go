@@ -22,3 +22,21 @@ func MetaCommand(filename string) error {
 	visualize.PrintFileStatistics(fileStats)
 	return nil
 }
+
+func RowGroupsCommand(filename string) error {
+	reader, err := file.OpenParquetFile(filename, true)
+	if err != nil {
+		return fmt.Errorf("error opening parquet file: %w", err)
+	}
+	defer reader.Close()
+
+	for i := range reader.MetaData().RowGroups {
+		rowGroup := reader.RowGroup(i)
+		rowGroupStats, err := parse.GetRowGroupStats(i, rowGroup)
+		if err != nil {
+			return err
+		}
+		visualize.PrintRowGroup(rowGroupStats)
+	}
+	return nil
+}
