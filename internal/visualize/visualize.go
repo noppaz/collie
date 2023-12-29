@@ -49,7 +49,7 @@ func lipglossTable(headers []string, rows [][]string) *table.Table {
 	return t
 }
 
-func PrintFileStatistics(fileStats *parse.FileStats) {
+func FormatFileStatistics(fileStats *parse.FileStats) string {
 	var rows [][]string
 	headers := fileStats.Columns[0].GetHeaders()
 	for _, col := range fileStats.Columns {
@@ -57,7 +57,9 @@ func PrintFileStatistics(fileStats *parse.FileStats) {
 	}
 	t := lipglossTable(headers, rows)
 
-	fmt.Printf(
+	b := strings.Builder{}
+	fmt.Fprintf(
+		&b,
 		"File:       %s\nCreator:    %s\nRows:       %v\nColumns:    %v\nRow groups: %v\n",
 		fileStats.Name,
 		fileStats.Creator,
@@ -65,7 +67,8 @@ func PrintFileStatistics(fileStats *parse.FileStats) {
 		fileStats.ColumnCount,
 		fileStats.RowGroups,
 	)
-	fmt.Println(t)
+	fmt.Fprintf(&b, "%s\n", t.String())
+	return b.String()
 }
 
 func FormatRowGroup(rowGroupStats *parse.RowGroupStats) string {
@@ -77,15 +80,15 @@ func FormatRowGroup(rowGroupStats *parse.RowGroupStats) string {
 	t := lipglossTable(headers, rows)
 
 	b := strings.Builder{}
-	b.WriteString(
-		fmt.Sprintf(
-			"Row group: %v, Rows: %v, Compressed size: %s, Uncompressed size: %s, Compression ratio %.2f\n",
-			rowGroupStats.Index,
-			rowGroupStats.RowCount,
-			rowGroupStats.SizeCompressed,
-			rowGroupStats.SizeUncompressed,
-			rowGroupStats.CompressionRatio,
-		))
-	b.WriteString(fmt.Sprintf("%s\n", t.String()))
+	fmt.Fprintf(
+		&b,
+		"Row group: %v, Rows: %v, Compressed size: %s, Uncompressed size: %s, Compression ratio %.2f\n",
+		rowGroupStats.Index,
+		rowGroupStats.RowCount,
+		rowGroupStats.SizeCompressed,
+		rowGroupStats.SizeUncompressed,
+		rowGroupStats.CompressionRatio,
+	)
+	fmt.Fprintf(&b, "%s\n", t.String())
 	return b.String()
 }

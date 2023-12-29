@@ -19,7 +19,7 @@ func MetaCommand(filename string) error {
 	if err != nil {
 		return err
 	}
-	visualize.PrintFileStatistics(fileStats)
+	fmt.Println(visualize.FormatFileStatistics(fileStats))
 	return nil
 }
 

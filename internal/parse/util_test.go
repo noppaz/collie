@@ -9,8 +9,8 @@ func Test_humanBytes(t *testing.T) {
 		expected string
 	}{
 		{"byte size", 541, "541 B"},
-		{"megabyte size", 8790212, "8.383 MiB"},
-		{"gigabyte size", 1073741824, "1.000 GiB"},
+		{"megabyte size", 8790212, "  8.383 MiB"},
+		{"gigabyte size", 1073741824, "  1.000 GiB"},
 	}
 
 	for _, tt := range testCases {
