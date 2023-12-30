@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	orange = lipgloss.Color("#db592a")
+	orange = lipgloss.Color("#E69945")
 )
 
 func lipglossTable(headers []string, rows [][]string) *table.Table {
@@ -26,8 +26,7 @@ func lipglossTable(headers []string, rows [][]string) *table.Table {
 
 	re := lipgloss.NewRenderer(os.Stdout)
 	headerStyle := re.NewStyle().Foreground(orange).Bold(true).Align(lipgloss.Center)
-	cellStyle := re.NewStyle().Padding(0, 1).Width(20)
-	rowStyle := cellStyle.Copy()
+	rowStyle := re.NewStyle().Padding(0, 1)
 	borderStyle := lipgloss.NewStyle().Foreground(orange)
 
 	t := table.New().
