@@ -42,3 +42,44 @@ func RowGroupsCommand(filename string, perPage int) error {
 	}
 	return visualize.PaginatorCreator(rowGroupOutput, perPage)
 }
+
+func HeadCommand(filename string, amount int) error {
+	reader, err := file.OpenParquetFile(filename, true)
+	if err != nil {
+		return fmt.Errorf("error opening parquet file: %w", err)
+	}
+	defer reader.Close()
+
+	const rowGroupIndex = 0
+	rowGroup := reader.RowGroup(rowGroupIndex)
+
+	rowGroupStats, err := parse.GetRowGroupStats(rowGroupIndex, rowGroup)
+	if err != nil {
+		return err
+	}
+	for _, rowGroupColumn := range rowGroupStats.ChunkStats {
+		if rowGroupColumn.HasUnsupportedCompressions() {
+			return fmt.Errorf(
+				"Row group %v, column '%s' has unsupported column compression: %s",
+				rowGroupIndex,
+				rowGroupColumn.GetColumnName(),
+				rowGroupColumn.GetColumnCompression(),
+			)
+		}
+	}
+
+	rows, err := parse.ReadRowGroupValues(rowGroup, amount)
+	if err != nil {
+		return err
+	}
+
+	headers := make([]string, rowGroup.NumColumns())
+	for i := 0; i < rowGroup.NumColumns(); i++ {
+		headers[i] = rowGroup.Column(i).Descriptor().Name()
+	}
+
+	fmt.Printf("Rows: %v\n", amount)
+	fmt.Printf("Columns: %v\n", len(headers))
+	fmt.Println(visualize.LipglossTable(headers, rows))
+	return nil
+}

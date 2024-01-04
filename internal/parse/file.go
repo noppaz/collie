@@ -52,10 +52,7 @@ func GetFileStats(filename string, reader *file.Reader) (*FileStats, error) {
 	for i := 0; i < columnCount; i++ {
 		col := fileSchema.Column(i)
 
-		nullable := true
-		if col.SchemaNode().RepetitionType().String() == "required" {
-			nullable = false
-		}
+		nullable := col.SchemaNode().RepetitionType().String() == "required"
 		fileColumn := &FileColumn{
 			Index:        i,
 			Nullable:     nullable,

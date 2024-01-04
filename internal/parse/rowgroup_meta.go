@@ -2,6 +2,7 @@ package parse
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 
@@ -35,6 +36,18 @@ func (c *ChunkStats) GetHeaders() []string {
 		"Min",
 		"Max",
 	}
+}
+
+func (c *ChunkStats) GetColumnCompression() string {
+	return c.compression
+}
+
+func (c *ChunkStats) GetColumnName() string {
+	return c.path
+}
+
+func (c *ChunkStats) HasUnsupportedCompressions() bool {
+	return slices.Contains([]string{"LZO", "LZ4", "LZ4_RAW"}, c.compression)
 }
 
 func (c *ChunkStats) GetStringedRow() []string {
