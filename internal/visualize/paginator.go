@@ -5,17 +5,14 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/paginator"
-	"github.com/charmbracelet/lipgloss"
 
 	tea "github.com/charmbracelet/bubbletea"
 )
 
 func PaginatorCreator(items []string, perPage int) error {
 	p := paginator.New()
-	p.Type = paginator.Dots
+	p.Type = paginator.Arabic
 	p.PerPage = perPage
-	p.ActiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "235", Dark: "252"}).Render("•")
-	p.InactiveDot = lipgloss.NewStyle().Foreground(lipgloss.AdaptiveColor{Light: "250", Dark: "238"}).Render("•")
 	p.SetTotalPages(len(items))
 
 	model := PaginatorModel{
