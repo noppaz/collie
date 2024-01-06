@@ -9,14 +9,53 @@ import (
 	"github.com/apache/arrow/go/parquet/file"
 )
 
-type ColumnValueResult struct {
+func ReadRows(filename string, amount int) ([]string, [][]string, error) {
+	reader, err := file.OpenParquetFile(filename, true)
+	if err != nil {
+		return nil, nil, fmt.Errorf("error opening parquet file: %w", err)
+	}
+	defer reader.Close()
+
+	const rowGroupIndex = 0
+	rowGroup := reader.RowGroup(rowGroupIndex)
+
+	rowGroupStats, err := GetRowGroupStats(rowGroupIndex, rowGroup)
+	if err != nil {
+		return nil, nil, err
+	}
+	for _, rowGroupColumn := range rowGroupStats.ChunkStats {
+		if rowGroupColumn.HasUnsupportedCompressions() {
+			return nil, nil, fmt.Errorf(
+				"Row group %v, column '%s' has unsupported column compression: %s",
+				rowGroupIndex,
+				rowGroupColumn.GetColumnName(),
+				rowGroupColumn.GetColumnCompression(),
+			)
+		}
+	}
+
+	rows, err := readRowGroupValues(rowGroup, amount)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	fileSchema := reader.MetaData().Schema
+	headers := make([]string, rowGroup.NumColumns())
+	for i := 0; i < fileSchema.NumColumns(); i++ {
+		headers[i] = fileSchema.Column(i).Name()
+	}
+
+	return headers, rows, nil
+}
+
+type columnValueResult struct {
 	index  int
 	values []string
 	err    error
 }
 
-func ReadRowGroupValues(rowGroup *file.RowGroupReader, amount int) ([][]string, error) {
-	resultChan := make(chan ColumnValueResult, rowGroup.NumColumns())
+func readRowGroupValues(rowGroup *file.RowGroupReader, amount int) ([][]string, error) {
+	resultChan := make(chan columnValueResult, rowGroup.NumColumns())
 	var wg sync.WaitGroup
 	for i := 0; i < rowGroup.NumColumns(); i++ {
 		wg.Add(1)
@@ -24,7 +63,7 @@ func ReadRowGroupValues(rowGroup *file.RowGroupReader, amount int) ([][]string, 
 			defer wg.Done()
 			column := rowGroup.Column(idx)
 			columnValues, err := readColumnValues(column, amount)
-			resultChan <- ColumnValueResult{idx, columnValues, err}
+			resultChan <- columnValueResult{idx, columnValues, err}
 		}(i)
 	}
 	wg.Wait()
