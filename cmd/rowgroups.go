@@ -10,6 +10,7 @@ func init() {
 	rowGroupsCmd := &cobra.Command{
 		Use:   "row-groups",
 		Short: "Show row group metadata",
+		Long:  "Enables exploration of row group statistics through a pager interface.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := args[0]
