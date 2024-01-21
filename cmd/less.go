@@ -10,6 +10,7 @@ func init() {
 	lessCommand := &cobra.Command{
 		Use:   "less",
 		Short: "Scroll through N values from the file",
+		Long:  "Enables file row exploration through a less-like interface to explore the file's rows.",
 		Args:  cobra.ExactArgs(1),
 		RunE: func(cmd *cobra.Command, args []string) error {
 			filename := args[0]
