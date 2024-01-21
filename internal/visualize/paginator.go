@@ -22,7 +22,7 @@ func PaginatorCreator(items []string, perPage int) error {
 
 	paginate := tea.NewProgram(model)
 	if _, err := paginate.Run(); err != nil {
-		return err
+		return fmt.Errorf("running paginator app: %w", err)
 	}
 	return nil
 }
