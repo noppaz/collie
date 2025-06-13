@@ -7,7 +7,7 @@ import (
 
 func humanBytes(b int64) string {
 	if b < 1024 {
-		return fmt.Sprintf("%v B", b)
+		return fmt.Sprintf("%7s B", fmt.Sprintf("%d", b))
 	}
 	bf := float64(b)
 	for _, unit := range []string{"KiB", "MiB", "GiB", "TiB", "PiB"} {
