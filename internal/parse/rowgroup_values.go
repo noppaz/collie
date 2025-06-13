@@ -5,8 +5,8 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/apache/arrow/go/parquet"
-	"github.com/apache/arrow/go/parquet/file"
+	"github.com/apache/arrow-go/v18/parquet"
+	"github.com/apache/arrow-go/v18/parquet/file"
 )
 
 func ReadRows(filename string, amount int) ([]string, [][]string, error) {
@@ -73,7 +73,7 @@ func readRowGroupValues(rowGroup *file.RowGroupReader, amount int64) ([][]string
 		wg.Add(1)
 		go func(idx int) {
 			defer wg.Done()
-			column := rowGroup.Column(idx)
+			column, _ := rowGroup.Column(idx) // TODO: implement error group
 			columnValues, err := readColumnValues(column, amount)
 			resultChan <- columnValueResult{idx, columnValues, err}
 		}(i)

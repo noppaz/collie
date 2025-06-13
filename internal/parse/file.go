@@ -3,7 +3,7 @@ package parse
 import (
 	"strconv"
 
-	"github.com/apache/arrow/go/parquet/file"
+	"github.com/apache/arrow-go/v18/parquet/file"
 )
 
 type FileColumn struct {

@@ -32,7 +32,7 @@ func LipglossTable(headers []string, rows [][]string) *table.Table {
 		StyleFunc(func(row, col int) lipgloss.Style {
 			var style lipgloss.Style
 			switch {
-			case row == 0:
+			case row == table.HeaderRow:
 				style = headerStyle
 			default:
 				style = rowStyle

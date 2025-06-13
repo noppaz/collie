@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/apache/arrow/go/parquet/file"
+	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/noppaz/collie/internal/parse"
 	"github.com/noppaz/collie/internal/visualize"
 )

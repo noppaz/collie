@@ -4,7 +4,7 @@ import (
 	"slices"
 	"testing"
 
-	"github.com/apache/arrow/go/parquet/metadata"
+	"github.com/apache/arrow-go/v18/parquet/metadata"
 )
 
 func Test_ChunkStatsGetStringedRow(t *testing.T) {

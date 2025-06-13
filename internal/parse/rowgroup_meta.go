@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/apache/arrow/go/parquet/file"
-	"github.com/apache/arrow/go/parquet/metadata"
+	"github.com/apache/arrow-go/v18/parquet/file"
+	"github.com/apache/arrow-go/v18/parquet/metadata"
 )
 
 type ChunkStats struct {
