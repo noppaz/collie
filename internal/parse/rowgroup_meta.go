@@ -76,16 +76,13 @@ type RowGroupStats struct {
 
 func GetRowGroupStats(index int, rowGroup *file.RowGroupReader) (*RowGroupStats, error) {
 	rowGroupMeta := rowGroup.MetaData()
-	rowGroupStats := &RowGroupStats{
-		Index:            index,
-		RowCount:         rowGroupMeta.NumRows(),
-		SizeCompressed:   humanBytes(rowGroupMeta.TotalCompressedSize()),
-		SizeUncompressed: humanBytes(rowGroupMeta.TotalByteSize()),
-		CompressionRatio: float64(rowGroupMeta.TotalByteSize()) / float64(rowGroupMeta.TotalCompressedSize()),
-	}
 
 	numColumns := rowGroupMeta.NumColumns()
 	chunkStatsCollection := make([]*ChunkStats, 0, numColumns)
+
+	var totalCompressedSize int64
+	var totalUncompressedSize int64
+
 	for i := 0; i < numColumns; i++ {
 		chunk, err := rowGroupMeta.ColumnChunk(i)
 		if err != nil {
@@ -98,13 +95,18 @@ func GetRowGroupStats(index int, rowGroup *file.RowGroupReader) (*RowGroupStats,
 			encodingsStrings = append(encodingsStrings, e.String())
 		}
 
+		compressedSize := chunk.TotalCompressedSize()
+		uncompressedSize := chunk.TotalUncompressedSize()
+		totalCompressedSize += compressedSize
+		totalUncompressedSize += uncompressedSize
+
 		chunkStats := ChunkStats{
 			path:             chunk.PathInSchema().String(),
 			physicalType:     chunk.Type().String(),
 			compression:      chunk.Compression().String(),
-			sizeCompressed:   humanBytes(chunk.TotalCompressedSize()),
-			sizeUncompressed: humanBytes(chunk.TotalUncompressedSize()),
-			compressionRatio: float64(chunk.TotalUncompressedSize()) / float64(chunk.TotalCompressedSize()),
+			sizeCompressed:   humanBytes(compressedSize),
+			sizeUncompressed: humanBytes(uncompressedSize),
+			compressionRatio: float64(uncompressedSize) / float64(compressedSize),
 			encodings:        strings.Join(encodingsStrings, ","),
 		}
 		statistics, err := chunk.Statistics()
@@ -122,7 +124,31 @@ func GetRowGroupStats(index int, rowGroup *file.RowGroupReader) (*RowGroupStats,
 		}
 		chunkStatsCollection = append(chunkStatsCollection, &chunkStats)
 	}
-	rowGroupStats.ChunkStats = chunkStatsCollection
+
+	// Get sizes from chunk metadata if row group metadata is unavailable
+	sizeCompressed := rowGroupMeta.TotalCompressedSize()
+	sizeUncompressed := rowGroupMeta.TotalByteSize()
+	if sizeCompressed == 0 {
+		sizeCompressed = totalCompressedSize
+	}
+	if sizeUncompressed == 0 {
+		sizeUncompressed = totalUncompressedSize
+	}
+	var compressionRatio float64
+	if sizeCompressed > 0 {
+		compressionRatio = float64(sizeUncompressed) / float64(sizeCompressed)
+	} else {
+		compressionRatio = 0
+	}
+
+	rowGroupStats := &RowGroupStats{
+		Index:            index,
+		RowCount:         rowGroupMeta.NumRows(),
+		SizeCompressed:   humanBytes(sizeCompressed),
+		SizeUncompressed: humanBytes(sizeUncompressed),
+		CompressionRatio: compressionRatio,
+		ChunkStats:       chunkStatsCollection,
+	}
 
 	return rowGroupStats, nil
 }
