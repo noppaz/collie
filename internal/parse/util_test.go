@@ -8,7 +8,7 @@ func Test_humanBytes(t *testing.T) {
 		input    int64
 		expected string
 	}{
-		{"byte size", 541, "541 B"},
+		{"byte size", 541, "    541 B"},
 		{"megabyte size", 8790212, "  8.383 MiB"},
 		{"gigabyte size", 1073741824, "  1.000 GiB"},
 	}
