@@ -8,12 +8,15 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const version = "v0.1.1"
+
 var SilentErr = errors.New("SilentErr")
 
 var rootCmd = &cobra.Command{
 	Use:           "collie",
 	SilenceErrors: true,
 	SilenceUsage:  true,
+	Version:       version,
 }
 
 func Execute() {
