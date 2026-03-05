@@ -3,10 +3,10 @@ package parse
 import (
 	"fmt"
 	"strconv"
-	"sync"
 
 	"github.com/apache/arrow-go/v18/parquet"
 	"github.com/apache/arrow-go/v18/parquet/file"
+	"golang.org/x/sync/errgroup"
 )
 
 func ReadRows(filename string, amount int) ([]string, [][]string, error) {
@@ -60,37 +60,35 @@ func ReadRows(filename string, amount int) ([]string, [][]string, error) {
 	return headers, rows, nil
 }
 
-type columnValueResult struct {
-	index  int
-	values []string
-	err    error
-}
-
 func readRowGroupValues(rowGroup *file.RowGroupReader, amount int64) ([][]string, error) {
-	resultChan := make(chan columnValueResult, rowGroup.NumColumns())
-	var wg sync.WaitGroup
-	for i := 0; i < rowGroup.NumColumns(); i++ {
-		wg.Add(1)
-		go func(idx int) {
-			defer wg.Done()
-			column, _ := rowGroup.Column(idx) // TODO: implement error group
+	numColumns := rowGroup.NumColumns()
+	results := make([][]string, numColumns)
+
+	var g errgroup.Group
+	for i := 0; i < numColumns; i++ {
+		idx := i
+		g.Go(func() error {
+			column, err := rowGroup.Column(idx)
+			if err != nil {
+				return fmt.Errorf("reading column %d: %w", idx, err)
+			}
 			columnValues, err := readColumnValues(column, amount)
-			resultChan <- columnValueResult{idx, columnValues, err}
-		}(i)
+			if err != nil {
+				return err
+			}
+			results[idx] = columnValues
+			return nil
+		})
 	}
-	wg.Wait()
-	close(resultChan)
+	if err := g.Wait(); err != nil {
+		return nil, err
+	}
 
 	valuesPerRow := make([][]string, amount)
 	for i := int64(0); i < amount; i++ {
-		valuesPerRow[i] = make([]string, rowGroup.NumColumns())
-	}
-	for res := range resultChan {
-		if res.err != nil {
-			return nil, res.err
-		}
-		for rowIdx, val := range res.values {
-			valuesPerRow[rowIdx][res.index] = val
+		valuesPerRow[i] = make([]string, numColumns)
+		for col := 0; col < numColumns; col++ {
+			valuesPerRow[i][col] = results[col][i]
 		}
 	}
 
