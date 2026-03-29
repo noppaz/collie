@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/apache/arrow-go/v18/parquet/file"
 	"github.com/noppaz/collie/internal/parse"
@@ -74,9 +73,7 @@ func LessCommand(filename string, amount int) error {
 		return err
 	}
 
-	tableString := visualize.LipglossTable(headers, rows).String()
-	header := strings.Join(strings.Split(tableString, "\n")[:3], "\n")
-	content := strings.Join(strings.Split(tableString, "\n")[3:], "\n")
+	header, content := visualize.LipglossTableWithSections(headers, rows)
 
 	return visualize.ViewportCreator(header, content)
 }
