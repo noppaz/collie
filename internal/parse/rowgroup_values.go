@@ -9,13 +9,7 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-func ReadRows(filename string, amount int) ([]string, [][]string, error) {
-	reader, err := file.OpenParquetFile(filename, true)
-	if err != nil {
-		return nil, nil, fmt.Errorf("error opening parquet file: %w", err)
-	}
-	defer reader.Close()
-
+func ReadRows(reader *file.Reader, amount int) ([]string, [][]string, error) {
 	const rowGroupIndex = 0
 	firstRowGroup := reader.RowGroup(rowGroupIndex)
 

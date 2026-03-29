@@ -10,9 +10,9 @@ import (
 )
 
 func MetaCommand(filename string) error {
-	reader, err := file.OpenParquetFile(filename, true)
+	reader, err := openParquetFile(filename)
 	if err != nil {
-		return fmt.Errorf("error opening parquet file: %w", err)
+		return err
 	}
 	defer reader.Close()
 
@@ -25,9 +25,9 @@ func MetaCommand(filename string) error {
 }
 
 func RowGroupsCommand(filename string, perPage int) error {
-	reader, err := file.OpenParquetFile(filename, true)
+	reader, err := openParquetFile(filename)
 	if err != nil {
-		return fmt.Errorf("error opening parquet file: %w", err)
+		return err
 	}
 	defer reader.Close()
 
@@ -45,7 +45,13 @@ func RowGroupsCommand(filename string, perPage int) error {
 }
 
 func HeadCommand(filename string, amount int) error {
-	headers, rows, err := parse.ReadRows(filename, amount)
+	reader, err := openParquetFile(filename)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	headers, rows, err := parse.ReadRows(reader, amount)
 	if err != nil {
 		return err
 	}
@@ -57,7 +63,13 @@ func HeadCommand(filename string, amount int) error {
 }
 
 func LessCommand(filename string, amount int) error {
-	headers, rows, err := parse.ReadRows(filename, amount)
+	reader, err := openParquetFile(filename)
+	if err != nil {
+		return err
+	}
+	defer reader.Close()
+
+	headers, rows, err := parse.ReadRows(reader, amount)
 	if err != nil {
 		return err
 	}
@@ -67,4 +79,13 @@ func LessCommand(filename string, amount int) error {
 	content := strings.Join(strings.Split(tableString, "\n")[3:], "\n")
 
 	return visualize.ViewportCreator(header, content)
+}
+
+func openParquetFile(filename string) (*file.Reader, error) {
+	reader, err := file.OpenParquetFile(filename, true)
+	if err != nil {
+		return nil, fmt.Errorf("error opening parquet file: %w", err)
+	}
+
+	return reader, nil
 }
