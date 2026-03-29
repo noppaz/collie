@@ -3,6 +3,8 @@ package parse
 import (
 	"slices"
 	"testing"
+
+	"github.com/apache/arrow-go/v18/parquet/file"
 )
 
 func Test_ReadRows(t *testing.T) {
@@ -40,7 +42,13 @@ func Test_ReadRows(t *testing.T) {
 
 	for _, tt := range testCases {
 		t.Run(tt.name, func(t *testing.T) {
-			headers, rows, err := ReadRows(tt.input.filename, tt.input.amount)
+			reader, err := file.OpenParquetFile(tt.input.filename, true)
+			if err != nil {
+				t.Fatalf("OpenParquetFile returned err: %v", err)
+			}
+			defer reader.Close()
+
+			headers, rows, err := ReadRows(reader, tt.input.amount)
 			if err != nil {
 				t.Errorf("ReadRows returned err: %v", err)
 			}
